@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SahaBot - Hackathon 2026 MVP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- المتغيرات والألوان --- */
+        :root {
+            --primary-green: #3fb950;
+            --primary-green-glow: rgba(63, 185, 80, 0.4);
+            --dark-bg: #0f0f0f;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-white: #ffffff;
+            --text-gray: #a0a0a0;
+            --accent-orange: #ff6b35;
+            --accent-gold: #ffd700;
+            --iphone-width: 375px;
+            --iphone-height: 812px;
+            --card-bg: rgba(255, 255, 255, 0.03);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        /* --- إطار الجوال --- */
+        .iphone-frame {
+            width: var(--iphone-width);
+            height: var(--iphone-height);
+            background: #000;
+            border-radius: 40px;
+            border: 10px solid #2d2d2d;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .status-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 44px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 25px;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 1000;
+        }
+
+        .notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 30px;
+            background: #000;
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
+            z-index: 1001;
+        }
+
+        .app-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0.9)), 
+                        url('https://images.unsplash.com/photo-1522778119026-d647f0565c71?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');
+            background-size: cover;
+            background-position: center;
+            z-index: 0;
+        }
+
+        .content-container {
+            position: relative;
+            z-index: 10;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding-top: 50px;
+            padding-bottom: 90px;
+            overflow: hidden;
+        }
+
+        .screen {
+            display: none;
+            height: 100%;
+            flex-direction: column;
+            animation: fadeIn 0.3s ease;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+        .screen::-webkit-scrollbar { display: none; }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            color: var(--text-white);
+            font-size: 1.4rem;
+            font-weight: 800;
+        }
+
+        .back-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text-white);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+        .back-btn:hover { background: var(--primary-green); }
+
+        /* --- الصفحة الرئيسية --- */
+        .home-header {
+            padding: 0 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary-green);
+        }
+
+        .loyalty-card {
+            background: linear-gradient(135deg, rgba(63, 185, 80, 0.2), rgba(0, 0, 0, 0.4));
+            border: 1px solid var(--primary-green);
+            padding: 8px 15px;
+            border-radius: 20px;
+            color: var(--primary-green);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 0 15px rgba(63, 185, 80, 0.2);
+            animation: pulseGreen 2s infinite;
+        }
+
+        @keyframes pulseGreen {
+            0% { box-shadow: 0 0 0 0 rgba(63, 185, 80, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(63, 185, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(63, 185, 80, 0); }
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 0 20px;
+        }
+
+        .glass-btn {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px 15px;
+            color: var(--text-white);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .glass-btn i {
+            font-size: 2rem;
+            color: var(--primary-green);
+            text-shadow: 0 0 10px var(--primary-green-glow);
+        }
+
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+            border-color: var(--primary-green);
+        }
+
+        .glass-btn.wide {
+            grid-column: span 2;
+        }
+
+        /* --- شاشة الجدول --- */
+        .date-strip {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px 20px;
+            margin-bottom: 15px;
+            scrollbar-width: none;
+        }
+        .date-strip::-webkit-scrollbar { display: none; }
+
+        .date-item {
+            min-width: 60px;
+            height: 70px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-gray);
+            transition: 0.3s;
+        }
+
+        .date-item.today {
+            background: rgba(63, 185, 80, 0.2);
+            border-color: var(--primary-green);
+            color: var(--text-white);
+        }
+
+        .match-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 15px;
+            margin: 0 20px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .team {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            width: 30%;
+        }
+        
+        .team-logo {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .match-info {
+            text-align: center;
+            width: 40%;
+        }
+
+        .match-time {
+            background: rgba(63, 185, 80, 0.2);
+            color: var(--primary-green);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .alert-btn {
+            width: 100%;
+            margin-top: 10px;
+            padding: 8px;
+            background: transparent;
+            border: 1px dashed var(--glass-border);
+            border-radius: 8px;
+            color: var(--text-gray);
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        .alert-btn.active {
+            border-color: var(--primary-green);
+            color: var(--primary-green);
+            background: rgba(63, 185, 80, 0.1);
+        }
+
+        /* --- شاشة الأخبار --- */
+        .news-ticker {
+            background: linear-gradient(90deg, #ff4500, #ff6b35);
+            padding: 8px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            margin: 0 20px 15px;
+            border-radius: 10px;
+            position: relative;
+        }
+        .ticker-content {
+            display: inline-block;
+            animation: scrollLeft 20s linear infinite;
+            color: white;
+            font-weight: bold;
+            padding-right: 100%;
+        }
+        @keyframes scrollLeft {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(100%); }
+        }
+
+        .news-card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            margin: 0 20px 15px;
+            overflow: hidden;
+        }
+
+        .news-image-wrapper {
+            width: 100%;
+            height: 160px;
+            position: relative;
+        }
+
+        .news-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .news-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary-green);
+            color: #000;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .news-info {
+            padding: 15px;
+        }
+
+        .news-headline {
+            color: var(--text-white);
+            font-size: 1rem;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .news-time {
+            color: var(--text-gray);
+            font-size: 0.8rem;
+        }
+
+        /* --- شاشة التذاكر --- */
+        .ticket-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 0 20px 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ticket-card::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 100px;
+            height: 100px;
+            background: var(--primary-green);
+            filter: blur(60px);
+            opacity: 0.3;
+        }
+
+        .ticket-price {
+            font-size: 1.5rem;
+            color: var(--primary-green);
+            font-weight: 800;
+            margin: 10px 0;
+        }
+
+        .btn-buy {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary-green);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .resale-section {
+            margin: 20px;
+            padding: 15px;
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 16px;
+        }
+
+        .locked-content {
+            filter: blur(3px);
+            pointer-events: none;
+            opacity: 0.5;
+            transition: 0.5s;
+        }
+        .locked-content.unlocked {
+            filter: blur(0);
+            pointer-events: all;
+            opacity: 1;
+        }
+
+        .lock-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            border-radius: 20px;
+        }
+
+        /* --- شاشة الفان زون --- */
+        .voting-card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 15px;
+            margin: 0 20px 15px;
+            text-align: center;
+        }
+        .vote-options {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+        }
+        .vote-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+        .vote-option:hover { background: rgba(255,255,255,0.1); }
+        .vote-option.selected { background: var(--primary-green); color: #000; }
+        .player-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--text-gray);
+        }
+        .vote-option.selected .player-img { border-color: #000; }
+
+        /* --- شاشة المرافق --- */
+        .blueprint-map {
+            background: #0a1628;
+            border: 2px solid #1a3a52;
+            border-radius: 16px;
+            height: 300px;
+            margin: 20px;
+            position: relative;
+            background-image: linear-gradient(#1a3a52 1px, transparent 1px), linear-gradient(90deg, #1a3a52 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .facility-dot {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: var(--primary-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 0.8rem;
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--primary-green);
+        }
+
+        /* --- الأيقونات العائمة (Floating Buttons) --- */
+        .fab-chat {
+            position: absolute;
+            bottom: 100px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: var(--primary-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 1.5rem;
+            box-shadow: 0 5px 20px rgba(63, 185, 80, 0.5);
+            cursor: pointer;
+            z-index: 200;
+            animation: bounce 2s infinite;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .fab-car {
+            position: absolute;
+            bottom: 100px;
+            left: 20px;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 215, 0, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 1.5rem;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+            cursor: pointer;
+            z-index: 200;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .fab-car:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6);
+        }
+
+        .fab-chat:hover {
+            transform: scale(1.1);
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-10px);}
+            60% {transform: translateY(-5px);}
+        }
+
+        /* --- نافذة الشات --- */
+        .chat-window {
+            position: absolute;
+            bottom: 170px;
+            right: 20px;
+            width: 300px;
+            height: 400px;
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            display: none;
+            flex-direction: column;
+            z-index: 201;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+        .chat-window.open { display: flex; }
+        .chat-header {
+            padding: 15px;
+            background: var(--primary-green);
+            color: #000;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+        .chat-body {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .msg {
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 80%;
+            font-size: 0.9rem;
+        }
+        .msg.bot { background: #333; color: #fff; align-self: flex-start; border-bottom-right-radius: 2px; }
+        .msg.user { background: var(--primary-green); color: #000; align-self: flex-end; border-bottom-left-radius: 2px; }
+        .chat-input-area {
+            padding: 10px;
+            border-top: 1px solid #333;
+            display: flex;
+            gap: 5px;
+        }
+        .chat-input {
+            flex: 1;
+            background: #333;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 15px;
+            color: #fff;
+            outline: none;
+        }
+        .send-btn {
+            background: var(--primary-green);
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            color: #000;
+            cursor: pointer;
+        }
+
+        /* --- نافذة السيارة --- */
+        .car-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .car-modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .car-modal-content {
+            background: linear-gradient(135deg, rgba(20, 30, 48, 0.98), rgba(10, 22, 40, 0.98));
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 24px;
+            padding: 25px;
+            width: 100%;
+            max-width: 320px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 215, 0, 0.1);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .car-modal-header {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 215, 0, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+
+        .btn-navigate {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary-green);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: 0.3s;
+        }
+
+        .btn-navigate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(63, 185, 80, 0.4);
+        }
+
+        .btn-cancel {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: var(--text-gray);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--text-gray);
+        }
+
+        /* --- نافذة الإرشاد --- */
+        .navigation-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 3000;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .navigation-modal.active {
+            display: flex;
+            animation: slideUp 0.3s ease;
+        }
+
+        .navigation-content {
+            width: 100%;
+            max-width: 375px;
+            background: linear-gradient(135deg, rgba(20, 30, 48, 0.98), rgba(10, 22, 40, 0.98));
+            border-radius: 30px 30px 0 0;
+            overflow: hidden;
+            border: 1px solid rgba(63, 185, 80, 0.3);
+        }
+
+        .navigation-header {
+            padding: 20px;
+            background: rgba(63, 185, 80, 0.1);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .close-nav-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+
+        .close-nav-btn:hover {
+            background: rgba(255, 100, 100, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .navigation-map {
+            height: 300px;
+            background: #0a1628;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-map-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(26, 58, 82, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(26, 58, 82, 0.3) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .nav-point {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            z-index: 10;
+        }
+
+        .nav-point.start {
+            background: rgba(63, 185, 80, 0.3);
+            border: 3px solid var(--primary-green);
+            color: var(--primary-green);
+            top: 70%;
+            left: 15%;
+        }
+
+        .nav-point.end {
+            background: rgba(255, 215, 0, 0.3);
+            border: 3px solid var(--accent-gold);
+            color: var(--accent-gold);
+            top: 20%;
+            right: 15%;
+        }
+
+        .nav-label {
+            position: absolute;
+            bottom: -25px;
+            background: rgba(0, 0, 0, 0.9);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            white-space: nowrap;
+        }
+
+        .nav-path {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            width: 200px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-green), var(--accent-gold));
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(63, 185, 80, 0.5);
+        }
+
+        .nav-info-box {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+        }
+
+        /* --- الناف بار السفلي --- */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid var(--glass-border);
+            z-index: 100;
+            padding-bottom: 10px;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-gray);
+            font-size: 0.7rem;
+            cursor: pointer;
+            gap: 5px;
+        }
+        .nav-item i { font-size: 1.4rem; transition: 0.3s; }
+        .nav-item.active { color: var(--primary-green); }
+        .nav-item.active i { transform: translateY(-3px); text-shadow: 0 0 10px var(--primary-green-glow); }
+
+        /* Toast Notification */
+        .toast {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(50px);
+            background: var(--primary-green);
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            opacity: 0;
+            transition: 0.3s;
+            z-index: 3000;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    </style>
+</head>
+<body>
+
+    <div class="iphone-frame">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div>9:41</div>
+            <div><i class="fas fa-wifi"></i> <i class="fas fa-battery-full"></i></div>
+        </div>
+        <div class="notch"></div>
+        <div class="app-background"></div>
+
+        <div class="content-container">
+            
+            <!-- 1. Home Screen -->
+            <div id="home-screen" class="screen active">
+                <div class="home-header">
+                    <div class="user-profile">
+                        <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100" class="avatar" alt="User">
+                        <div>
+                            <div style="color: #fff; font-weight: bold;">يوسف محمد</div>
+                            <div style="color: var(--text-gray); font-size: 0.8rem;">مقعد A12</div>
+                        </div>
+                    </div>
+                    <div class="loyalty-card">
+                        <i class="fas fa-coins"></i>
+                        <span id="loyalty-points">450</span> نقطة
+                    </div>
+                </div>
+
+                <div class="menu-grid">
+                    <div class="glass-btn" onclick="showScreen('schedule')">
+                        <i class="fas fa-calendar-alt"></i>
+                        جدول المباريات
+                    </div>
+                    <div class="glass-btn" onclick="showScreen('news')">
+                        <i class="fas fa-newspaper"></i>
+                        أخبار الكورة
+                    </div>
+                    <div class="glass-btn" onclick="showScreen('tickets')">
+                        <i class="fas fa-ticket-alt"></i>
+                        مركز التذاكر
+                    </div>
+                    <div class="glass-btn" onclick="showScreen('fanzone')">
+                        <i class="fas fa-users"></i>
+                        فعاليات المشجعين
+                    </div>
+                    <div class="glass-btn wide" onclick="showScreen('facilities')">
+                        <i class="fas fa-map-marked-alt"></i>
+                        دليل المرافق والخدمات
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Schedule Screen -->
+            <div id="schedule-screen" class="screen">
+                <div class="header">
+                    <button class="back-btn" onclick="showScreen('home')"><i class="fas fa-arrow-right"></i></button>
+                    <div class="page-title">جدول المباريات</div>
+                    <div style="width: 35px;"></div>
+                </div>
+                
+                <div class="date-strip">
+                    <div class="date-item"><div>السبت</div><div>01</div></div>
+                    <div class="date-item today"><div>الأحد</div><div>02</div></div>
+                    <div class="date-item"><div>الاثنين</div><div>03</div></div>
+                </div>
+
+                <div class="match-card">
+                    <div class="team">
+                        <div class="team-logo" style="color:#1a4fdb"><i class="fas fa-shield-alt"></i></div>
+                        <span>الهلال</span>
+                    </div>
+                    <div class="match-info">
+                        <div class="match-time" onclick="copyText('08:00 PM')">08:00 PM</div>
+                        <div style="font-size:0.7rem; color:#888; margin-top:5px;">2 مارس 2026</div>
+                    </div>
+                    <div class="team">
+                        <div class="team-logo" style="color:#ffd700"><i class="fas fa-shield-alt"></i></div>
+                        <span>الاتحاد</span>
+                    </div>
+                </div>
+                <button class="alert-btn" onclick="toggleAlert(this)"><i class="far fa-bell"></i> تنبيهي</button>
+
+                <div class="match-card">
+                    <div class="team">
+                        <div class="team-logo" style="color:#ffd700"><i class="fas fa-shield-alt"></i></div>
+                        <span>النصر</span>
+                    </div>
+                    <div class="match-info">
+                        <div class="match-time" onclick="copyText('10:00 PM')">10:00 PM</div>
+                        <div style="font-size:0.7rem; color:#888; margin-top:5px;">2 مارس 2026</div>
+                    </div>
+                    <div class="team">
+                        <div class="team-logo" style="color:#00a650"><i class="fas fa-shield-alt"></i></div>
+                        <span>الأهلي</span>
+                    </div>
+                </div>
+                <button class="alert-btn" onclick="toggleAlert(this)"><i class="far fa-bell"></i> تنبيهي</button>
+            </div>
+
+            <!-- 3. News Screen -->
+            <div id="news-screen" class="screen">
+                <div class="header">
+                    <button class="back-btn" onclick="showScreen('home')"><i class="fas fa-arrow-right"></i></button>
+                    <div class="page-title">أخبار الكورة</div>
+                    <div style="width: 35px;"></div>
+                </div>
+
+                <div class="news-ticker">
+                    <div class="ticker-content">
+                        🔥 عاجل: انطلاق مبيعات تذاكر نهائي 2026 .. ⚽ الأخضر يستعد للمواجهة القادمة .. 🏆 الهلال يتصدر الترتيب ..
+                    </div>
+                </div>
+
+                <div class="news-card">
+                    <div class="news-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1518091043644-c1d4457512c6?w=400&h=200&fit=crop" class="news-image">
+                        <span class="news-badge">إنتقالات</span>
+                    </div>
+                    <div class="news-info">
+                        <div class="news-headline">"لا يناسبنا".. نادٍ سعودي شهير يصدم محمد صلاح</div>
+                        <div class="news-time"><i class="far fa-clock"></i> 27 مارس، 2026</div>
+                    </div>
+                </div>
+
+                <div class="news-card">
+                    <div class="news-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400&h=200&fit=crop" class="news-image">
+                        <span class="news-badge">منتخب</span>
+                    </div>
+                    <div class="news-info">
+                        <div class="news-headline">أزمة جديدة تضرب الهلال.. إصابة ظهير قبل مباراة مصر</div>
+                        <div class="news-time"><i class="far fa-clock"></i> 27 مارس، 2026</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Ticketing Hub -->
+            <div id="tickets-screen" class="screen">
+                <div class="header">
+                    <button class="back-btn" onclick="showScreen('home')"><i class="fas fa-arrow-right"></i></button>
+                    <div class="page-title">مركز التذاكر</div>
+                    <div style="width: 35px;"></div>
+                </div>
+
+                <div style="position: relative; margin: 20px;">
+                    <div id="lock-overlay" class="lock-overlay">
+                        <i class="fas fa-lock" style="font-size: 2rem; color: var(--accent-orange); margin-bottom: 10px;"></i>
+                        <div style="color: #fff; font-weight: bold;">مغلق</div>
+                        <div style="color: #aaa; font-size: 0.8rem;">تحتاج 500 نقطة لفتح الحجز</div>
+                    </div>
+                    <div id="locked-content" class="locked-content">
+                        <div class="ticket-card">
+                            <div style="display:flex; justify-content:space-between;">
+                                <span style="color:#fff; font-weight:bold;">الهلال vs الاتحاد</span>
+                                <span style="color:var(--primary-green);">VIP</span>
+                            </div>
+                            <div class="ticket-price">150 ر.س</div>
+                            <div style="font-size:0.8rem; color:#aaa;">بوابة 5 - مقعد A12</div>
+                            <button class="btn-buy" onclick="showToast('تم الحجز بنجاح!')">شراء التذكرة</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="resale-section">
+                    <h4 style="color:var(--accent-gold); margin-bottom:10px;"><i class="fas fa-sync"></i> إعادة البيع الآمن</h4>
+                    <p style="font-size:0.8rem; color:#ccc; margin-bottom:10px;">بع تذكرتك بأمان للمشجعين الآخرين عبر المنصة الرسمية.</p>
+                    <button class="btn-buy" style="background:var(--accent-gold); color:#000;" onclick="showToast('تم عرض التذكرة للبيع')">عرض للبيع</button>
+                </div>
+            </div>
+
+            <!-- 5. Fan Zone -->
+            <div id="fanzone-screen" class="screen">
+                <div class="header">
+                    <button class="back-btn" onclick="showScreen('home')"><i class="fas fa-arrow-right"></i></button>
+                    <div class="page-title">فعاليات المشجعين</div>
+                    <div style="width: 35px;"></div>
+                </div>
+
+                <div class="voting-card">
+                    <h3 style="color:#fff; margin-bottom:5px;">رجل المباراة</h3>
+                    <p style="color:#aaa; font-size:0.8rem;">صوّت الآن واربح 50 نقطة!</p>
+                    
+                    <div class="vote-options">
+                        <div class="vote-option" onclick="vote(this)">
+                            <img src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=100" class="player-img">
+                            <span>محمد</span>
+                        </div>
+                        <div class="vote-option" onclick="vote(this)">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100" class="player-img">
+                            <span>سالم</span>
+                        </div>
+                        <div class="vote-option" onclick="vote(this)">
+                            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100" class="player-img">
+                            <span>كريستيانو</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="voting-card">
+                    <h3 style="color:#fff; margin-bottom:5px;">أفضل لقطة</h3>
+                    <div style="height: 150px; background: #222; border-radius: 10px; display:flex; align-items:center; justify-content:center; color:#555;">
+                        <i class="fas fa-play-circle" style="font-size: 3rem;"></i>
+                    </div>
+                    <button class="btn-buy" style="margin-top:10px;" onclick="showToast('تم التصويت بنجاح! +50 نقطة')">تصويت</button>
+                </div>
+            </div>
+
+            <!-- 6. Facilities -->
+            <div id="facilities-screen" class="screen">
+                <div class="header">
+                    <button class="back-btn" onclick="showScreen('home')"><i class="fas fa-arrow-right"></i></button>
+                    <div class="page-title">دليل المرافق</div>
+                    <div style="width: 35px;"></div>
+                </div>
+                
+                <div class="blueprint-map">
+                    <div class="facility-dot" style="top: 20%; left: 20%;" onclick="simulatePath('المصلى')"><i class="fas fa-mosque"></i></div>
+                    <div class="facility-dot" style="top: 20%; right: 20%; background: #00bcd4;" onclick="simulatePath('دورات المياه')"><i class="fas fa-restroom"></i></div>
+                    <div class="facility-dot" style="bottom: 30%; left: 50%; background: #ff9800;" onclick="simulatePath('المطاعم')"><i class="fas fa-utensils"></i></div>
+                    <div class="facility-dot" style="bottom: 10%; right: 10%; background: #f44336;" onclick="simulatePath('الإسعاف')"><i class="fas fa-first-aid"></i></div>
+                    
+                    <div style="position: absolute; bottom: 10px; left: 10px; color: #1a3a52; font-weight: bold; font-size: 1.5rem; opacity: 0.5;">BLUEPRINT</div>
+                </div>
+                
+                <div style="padding: 0 20px; color: #aaa; font-size: 0.9rem;">
+                    <p><i class="fas fa-info-circle" style="color: var(--primary-green);"></i> اضغط على أي أيقونة لحساب المسار الأقصر عبر خوارزمية Dijkstra.</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Floating Buttons -->
+        <div class="fab-car" onclick="findMyCar()">
+            <i class="fas fa-car"></i>
+        </div>
+
+        <div class="fab-chat" onclick="toggleChat()">
+            <i class="fas fa-robot"></i>
+        </div>
+
+        <!-- Chat Window -->
+        <div class="chat-window" id="chat-window">
+            <div class="chat-header">
+                <span>SahaBot 🤖</span>
+                <i class="fas fa-times" style="cursor:pointer;" onclick="toggleChat()"></i>
+            </div>
+            <div class="chat-body" id="chat-body">
+                <div class="msg bot">مرحباً يوسف! كيف يمكنني مساعدتك اليوم؟</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" class="chat-input" id="chat-input" placeholder="اكتب سؤالك...">
+                <button class="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+
+        <!-- Car Modal -->
+        <div id="car-confirm-modal" class="car-modal" onclick="closeCarModal(event)">
+            <div class="car-modal-content" onclick="event.stopPropagation()">
+                <div class="car-modal-header">
+                    <i class="fas fa-car-side" style="color: var(--accent-gold); font-size: 2rem;"></i>
+                </div>
+                <h3 style="color: #fff; margin: 15px 0 10px;">موقع السيارة</h3>
+                <p style="color: var(--text-gray); font-size: 0.9rem; margin-bottom: 20px;">
+                    تم تحديد موقع سيارتك في <strong style="color: var(--primary-green);">مواقف A3 - بوابة 4</strong>
+                </p>
+                <div style="background: rgba(63, 185, 80, 0.1); border: 1px solid var(--primary-green); border-radius: 12px; padding: 15px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: #fff; font-size: 0.9rem;">تاريخ الحجز:</span>
+                        <span style="color: var(--primary-green); font-weight: bold;">مارس 2026</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                        <span style="color: #fff; font-size: 0.9rem;">رقم الموقف:</span>
+                        <span style="color: var(--accent-gold); font-weight: bold;">A3-47</span>
+                    </div>
+                </div>
+                <button class="btn-navigate" onclick="navigateToCar()" style="width: 100%; padding: 14px; background: var(--primary-green); color: #000; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; margin-bottom: 10px;">
+                    <i class="fas fa-directions"></i> تفعيل الإرشاد
+                </button>
+                <button class="btn-cancel" onclick="closeCarModal()" style="width: 100%; padding: 12px; background: transparent; color: var(--text-gray); border: 1px solid var(--glass-border); border-radius: 12px; font-weight: 600; cursor: pointer;">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation Modal -->
+        <div id="navigation-modal" class="navigation-modal" onclick="closeNavigationModal(event)">
+            <div class="navigation-content" onclick="event.stopPropagation()">
+                <div class="navigation-header">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-route" style="color: var(--primary-green);"></i>
+                        <span>المسار إلى سيارتك</span>
+                    </div>
+                    <button class="close-nav-btn" onclick="closeNavigationModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="navigation-map">
+                    <div class="nav-map-grid"></div>
+                    
+                    <div class="nav-point start">
+                        <i class="fas fa-user"></i>
+                        <div class="nav-label">موقعك الحالي</div>
+                    </div>
+                    
+                    <div class="nav-path"></div>
+                    
+                    <div class="nav-point end">
+                        <i class="fas fa-car"></i>
+                        <div class="nav-label">السيارة - بوابة 4</div>
+                    </div>
+                    
+                    <div class="nav-info-box">
+                        <div style="color: var(--primary-green); font-size: 1.2rem; font-weight: 800;">
+                            <i class="fas fa-walking"></i> 450 متر
+                        </div>
+                        <div style="color: var(--text-gray); font-size: 0.85rem;">
+                            <i class="far fa-clock"></i> 6 دقائق مشي
+                        </div>
+                        <div style="color: var(--accent-gold); font-size: 0.75rem; margin-top: 5px;">
+                            <i class="fas fa-brain"></i> Dijkstra Algorithm
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="padding: 15px; background: rgba(63, 185, 80, 0.1); border-top: 1px solid var(--glass-border);">
+                    <div style="color: var(--text-gray); font-size: 0.85rem; text-align: center;">
+                        <i class="fas fa-info-circle" style="color: var(--primary-green);"></i>
+                        اتبع المسار الأخضر للوصول إلى سيارتك
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Nav -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="showScreen('home')">
+                <i class="fas fa-home"></i>
+                <span>الرئيسية</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('schedule')">
+                <i class="fas fa-calendar"></i>
+                <span>المباريات</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('tickets')">
+                <i class="fas fa-ticket-alt"></i>
+                <span>التذاكر</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('fanzone')">
+                <i class="fas fa-user-friends"></i>
+                <span>المشجعين</span>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div class="toast" id="toast">تم النسخ بنجاح!</div>
+
+    </div>
+
+    <script>
+        // === State ===
+        let points = 450;
+        const pointsElement = document.getElementById('loyalty-points');
+        const lockOverlay = document.getElementById('lock-overlay');
+        const lockedContent = document.getElementById('locked-content');
+
+        // === Navigation ===
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId + '-screen').classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            if(screenId === 'home') document.querySelectorAll('.nav-item')[0].classList.add('active');
+            if(screenId === 'schedule') document.querySelectorAll('.nav-item')[1].classList.add('active');
+            if(screenId === 'tickets') document.querySelectorAll('.nav-item')[2].classList.add('active');
+            if(screenId === 'fanzone') document.querySelectorAll('.nav-item')[3].classList.add('active');
+        }
+
+        // === Loyalty Points System ===
+        function updatePointsDisplay() {
+            pointsElement.innerText = points;
+            pointsElement.parentElement.style.transform = "scale(1.2)";
+            setTimeout(() => pointsElement.parentElement.style.transform = "scale(1)", 300);
+            checkTicketLock();
+        }
+
+        function checkTicketLock() {
+            if (points >= 500) {
+                unlockTickets();
+            }
+        }
+
+        function unlockTickets() {
+            if (lockOverlay && lockedContent) {
+                lockOverlay.style.display = 'none';
+                lockedContent.classList.add('unlocked');
+                showToast('🎉 مبروك! تم فتح الحجز الخاص');
+            }
+        }
+
+        function addPoints(amount) {
+            points += amount;
+            updatePointsDisplay();
+        }
+
+        // === Vote Function ===
+        function vote(element) {
+            if (element.classList.contains('selected')) return;
+            document.querySelectorAll('.vote-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            addPoints(50);
+            showToast('✅ تم التصويت بنجاح! +50 نقطة');
+            
+            setTimeout(() => {
+                if (points >= 500) {
+                    unlockTickets();
+                }
+            }, 500);
+        }
+
+        // === Find My Car Function ===
+        function findMyCar() {
+            document.getElementById('car-confirm-modal').classList.add('active');
+        }
+
+        function closeCarModal(event) {
+            if (!event || event.target === event.currentTarget) {
+                document.getElementById('car-confirm-modal').classList.remove('active');
+            }
+        }
+
+        function navigateToCar() {
+            closeCarModal();
+            document.getElementById('navigation-modal').classList.add('active');
+            showToast('🗺️ جاري حساب المسار عبر Dijkstra...');
+        }
+
+        function closeNavigationModal(event) {
+            if (!event || event.target === event.currentTarget) {
+                document.getElementById('navigation-modal').classList.remove('active');
+            }
+        }
+
+        // === Chat Bot ===
+        function toggleChat() {
+            document.getElementById('chat-window').classList.toggle('open');
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const body = document.getElementById('chat-body');
+            const text = input.value;
+            if (!text) return;
+
+            body.innerHTML += `<div class="msg user">${text}</div>`;
+            input.value = '';
+            body.scrollTop = body.scrollHeight;
+
+            setTimeout(() => {
+                let reply = "أنا SahaBot، كيف يمكنني مساعدتك؟";
+                if (text.includes("تذاكر") || text.includes("حجز")) 
+                    reply = points >= 500 ? "✅ يمكنك الحجز الآن! نقاطك كافية." : `❌ تحتاج ${500 - points} نقطة إضافية للحجز.`;
+                if (text.includes("سيارة") || text.includes("موقف")) 
+                    reply = "اضغط على أيقونة السيارة أسفل اليسار لحفظ موقع سيارتك.";
+                if (text.includes("نقاط") || text.includes("ولاء")) 
+                    reply = `رصيدك الحالي: ${points} نقطة. تحتاج 500 لفتح الحجز الخاص.`;
+                
+                body.innerHTML += `<div class="msg bot">${reply}</div>`;
+                body.scrollTop = body.scrollHeight;
+            }, 1000);
+        }
+
+        document.getElementById('chat-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // === Utilities ===
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function copyText(text) {
+            navigator.clipboard.writeText(text);
+            showToast('تم نسخ الوقت: ' + text);
+        }
+
+        function toggleAlert(btn) {
+            btn.classList.toggle('active');
+            const icon = btn.querySelector('i');
+            if(btn.classList.contains('active')) {
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+                showToast('تم تفعيل التنبيه 🔔');
+            } else {
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+            }
+        }
+
+        function simulatePath(dest) {
+            showToast('جاري حساب المسار لـ ' + dest + '...');
+            setTimeout(() => {
+                showToast('✅ تم تحديد المسار الأقصر');
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
